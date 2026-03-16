@@ -89,6 +89,7 @@ const PLAN_SECTION_IDS = new Set(["admin", "pre-sale-visit", "provisional-accept
 const BUY_SECTION_IDS = new Set(["general-buy-list"]);
 const CHECKLIST_STORAGE_KEY = "house-project-checklist-v1";
 const CHECKLIST_VERSION = 3;
+const REMOTE_SYNC_ENDPOINT = "/api/checklist";
 
 function esc(str) {
   return String(str)
@@ -112,45 +113,157 @@ function toDomToken(str) {
     .replace(/^-+|-+$/g, "");
 }
 
+function normalizeChecklistState(rawState) {
+  const parsed = rawState && typeof rawState === "object" ? rawState : {};
+
+  if (parsed.version !== CHECKLIST_VERSION || !parsed.room || typeof parsed.room !== "object") {
+    return { version: CHECKLIST_VERSION, room: {}, legacy: {}, updatedAt: 0 };
+  }
+
+  return {
+    version: CHECKLIST_VERSION,
+    room: parsed.room,
+    legacy: parsed.legacy && typeof parsed.legacy === "object" ? parsed.legacy : {},
+    updatedAt: Number.isFinite(parsed.updatedAt) ? parsed.updatedAt : 0,
+  };
+}
+
 function loadChecklistState() {
   try {
     const raw = window.localStorage.getItem(CHECKLIST_STORAGE_KEY);
     if (!raw) {
-      return { version: CHECKLIST_VERSION, room: {}, legacy: {} };
+      return normalizeChecklistState(null);
     }
 
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") {
-      return { version: CHECKLIST_VERSION, room: {}, legacy: {} };
-    }
-
-    // New structure
-    if (parsed.version === CHECKLIST_VERSION && parsed.room && typeof parsed.room === "object") {
-      return {
-        version: CHECKLIST_VERSION,
-        room: parsed.room,
-        legacy: parsed.legacy && typeof parsed.legacy === "object" ? parsed.legacy : {},
-      };
-    }
-
-    // Ignore old flat map format to avoid cross-room auto-tick behavior.
-    return {
-      version: CHECKLIST_VERSION,
-      room: {},
-      legacy: {},
-    };
+    return normalizeChecklistState(JSON.parse(raw));
   } catch (error) {
-    return { version: CHECKLIST_VERSION, room: {}, legacy: {} };
+    return normalizeChecklistState(null);
   }
 }
 
 let checklistState = loadChecklistState();
+let remoteSyncTimerId = null;
+let remoteSyncInFlight = false;
+let remoteSyncPending = false;
+
+function markChecklistUpdated() {
+  checklistState.updatedAt = Date.now();
+}
 
 function saveChecklistState() {
   try {
     window.localStorage.setItem(CHECKLIST_STORAGE_KEY, JSON.stringify(checklistState));
   } catch (error) {
     // Ignore storage failures and keep the UI usable.
+  }
+
+  scheduleRemoteSync();
+}
+
+async function fetchRemoteChecklistState() {
+  try {
+    const response = await window.fetch(REMOTE_SYNC_ENDPOINT, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        "Accept": "application/json",
+      },
+    });
+
+    if (!response.ok) return null;
+
+    const payload = await response.json();
+    return normalizeChecklistState(payload && payload.state);
+  } catch (error) {
+    return null;
+  }
+}
+
+async function pushRemoteChecklistState() {
+  if (remoteSyncInFlight) {
+    remoteSyncPending = true;
+    return;
+  }
+
+  remoteSyncInFlight = true;
+
+  try {
+    await window.fetch(REMOTE_SYNC_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ state: checklistState }),
+    });
+  } catch (error) {
+    // Keep local state if remote sync fails.
+  } finally {
+    remoteSyncInFlight = false;
+    if (remoteSyncPending) {
+      remoteSyncPending = false;
+      pushRemoteChecklistState();
+    }
+  }
+}
+
+function scheduleRemoteSync() {
+  if (remoteSyncTimerId !== null) {
+    window.clearTimeout(remoteSyncTimerId);
+  }
+
+  remoteSyncTimerId = window.setTimeout(function() {
+    remoteSyncTimerId = null;
+    pushRemoteChecklistState();
+  }, 400);
+}
+
+function isChecklistStateEmpty(state) {
+  const room = state && state.room && typeof state.room === "object" ? state.room : {};
+  const legacy = state && state.legacy && typeof state.legacy === "object" ? state.legacy : {};
+  return Object.keys(room).length === 0 && Object.keys(legacy).length === 0;
+}
+
+async function hydrateChecklistStateFromRemote() {
+  const remoteState = await fetchRemoteChecklistState();
+  if (!remoteState) return;
+
+  const localUpdated = Number.isFinite(checklistState.updatedAt) ? checklistState.updatedAt : 0;
+  const remoteUpdated = Number.isFinite(remoteState.updatedAt) ? remoteState.updatedAt : 0;
+
+  if (remoteUpdated > localUpdated) {
+    checklistState = remoteState;
+    try {
+      window.localStorage.setItem(CHECKLIST_STORAGE_KEY, JSON.stringify(checklistState));
+    } catch (error) {
+      // Ignore storage failures and keep the UI usable.
+    }
+    renderNav();
+    renderContent();
+    return;
+  }
+
+  if (localUpdated > remoteUpdated) {
+    scheduleRemoteSync();
+    return;
+  }
+
+  const localIsEmpty = isChecklistStateEmpty(checklistState);
+  const remoteIsEmpty = isChecklistStateEmpty(remoteState);
+
+  if (!localIsEmpty && remoteIsEmpty) {
+    scheduleRemoteSync();
+    return;
+  }
+
+  if (localIsEmpty && !remoteIsEmpty) {
+    checklistState = remoteState;
+    try {
+      window.localStorage.setItem(CHECKLIST_STORAGE_KEY, JSON.stringify(checklistState));
+    } catch (error) {
+      // Ignore storage failures and keep the UI usable.
+    }
+    renderNav();
+    renderContent();
   }
 }
 
@@ -180,6 +293,7 @@ function setItemCompleteForRoom(key, roomId, complete) {
     }
   }
 
+  markChecklistUpdated();
   saveChecklistState();
 }
 
@@ -739,6 +853,7 @@ document.getElementById("content").addEventListener("change", function(event) {
       } else {
         delete checklistState.legacy[target.dataset.key];
       }
+      markChecklistUpdated();
       saveChecklistState();
       return;
     }
@@ -756,3 +871,4 @@ document.addEventListener("keydown", function(event) {
 
 renderNav();
 renderContent();
+hydrateChecklistStateFromRemote();
