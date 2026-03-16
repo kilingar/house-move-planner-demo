@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New House – Project Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <span class="logo-icon">🏠</span>
+          <div>
+            <h1>New House</h1>
+            <small>Project Tracker</small>
+          </div>
+        </div>
+        <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
+      </div>
+      <nav id="nav" aria-label="Sections"></nav>
+    </aside>
+
+    <!-- Mobile overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+        <h2 id="pageTitle">Select a section</h2>
+      </header>
+      <div class="content">
+        <div class="content-inner" id="content">
+          <p class="placeholder">← Select a section from the sidebar to get started.</p>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

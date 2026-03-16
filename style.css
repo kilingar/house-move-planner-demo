@@ -1,0 +1,472 @@
+/* ============================================================
+   NEW HOUSE – Project Tracker · Styles
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Layout */
+  --sidebar-w: 252px;
+
+  /* Main palette */
+  --bg: #f4f3ef;
+  --surface: #ffffff;
+  --border: #e8e5e0;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+
+  /* Text */
+  --text: #1e1c28;
+  --text-muted: #908b9e;
+  --text-done: #c4bfd2;
+
+  /* Accent (purple) */
+  --accent: #6c47c4;
+  --accent-light: #ede8fa;
+
+  /* Progress bar */
+  --progress-bg: #e6e2f0;
+
+  /* Sidebar */
+  --sidebar-bg: #1a1829;
+  --sidebar-text: rgba(255,255,255,0.58);
+  --sidebar-hover: rgba(255,255,255,0.07);
+  --sidebar-active-bg: rgba(108,71,196,0.28);
+  --sidebar-active-border: #9d78e8;
+
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ── Layout ─────────────────────────────────────────────────── */
+.app { display: flex; height: 100vh; }
+
+/* ── Sidebar ────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+  flex-shrink: 0;
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+  z-index: 200;
+}
+
+.sidebar-header {
+  padding: 22px 18px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-icon { font-size: 1.4rem; }
+.sidebar-logo h1 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #fff;
+  line-height: 1.2;
+}
+.sidebar-logo small {
+  display: block;
+  font-size: 0.67rem;
+  font-weight: 400;
+  color: var(--sidebar-text);
+  margin-top: 2px;
+  letter-spacing: 0.01em;
+}
+
+.sidebar-close {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--sidebar-text);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 5px 7px;
+  border-radius: 6px;
+  line-height: 1;
+}
+.sidebar-close:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+nav { padding: 10px 0 24px; }
+
+.nav-section-label {
+  font-size: 0.63rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: rgba(255,255,255,0.25);
+  padding: 16px 18px 5px;
+}
+
+.nav-item {
+  width: 100%;
+  background: none;
+  border: none;
+  border-left: 3px solid transparent;
+  color: var(--sidebar-text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 8px 15px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-family: inherit;
+  font-weight: 400;
+  text-align: left;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+}
+.nav-item:hover { background: var(--sidebar-hover); color: #fff; }
+.nav-item.active {
+  background: var(--sidebar-active-bg);
+  border-left-color: var(--sidebar-active-border);
+  color: #fff;
+}
+
+.nav-icon { font-size: 0.95rem; min-width: 20px; text-align: center; }
+.nav-label { flex: 1; font-weight: 500; letter-spacing: -0.005em; }
+.nav-badge {
+  font-size: 0.65rem;
+  background: rgba(255,255,255,0.09);
+  padding: 2px 6px;
+  border-radius: 20px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.nav-item.active .nav-badge {
+  background: rgba(108,71,196,0.38);
+  color: rgba(255,255,255,0.9);
+}
+
+/* ── Main area ──────────────────────────────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+.topbar {
+  height: 54px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--text);
+  padding: 4px 6px;
+  border-radius: 6px;
+  line-height: 1;
+}
+.menu-btn:hover { background: var(--bg); }
+
+#pageTitle {
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+/* ── Scrollable content ─────────────────────────────────────── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 36px 40px;
+}
+.content-inner { max-width: 700px; margin: 0 auto; }
+
+.placeholder {
+  text-align: center;
+  color: var(--text-muted);
+  margin-top: 80px;
+  font-size: 0.95rem;
+}
+
+/* ── Section header ─────────────────────────────────────────── */
+.section-header { margin-bottom: 28px; }
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.section-icon { font-size: 1.9rem; line-height: 1; }
+.section-title h2 {
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.summary-line {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  letter-spacing: -0.005em;
+}
+
+.task-panel {
+  margin-top: 8px;
+  margin-bottom: 10px;
+}
+
+.task-panel-title {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 7px;
+}
+
+.task-panel-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.task-chip {
+  border: 1px solid #d5cced;
+  background: var(--accent-light);
+  color: #4a3a6e;
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 0.71rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.13s, border-color 0.13s;
+}
+
+.task-chip:hover {
+  background: #e2d8f8;
+  border-color: #c0b4e6;
+}
+
+.task-chip--active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.task-chip--active:hover {
+  background: #7b57d4;
+  border-color: #7b57d4;
+}
+
+.area-filter-chip {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 0.71rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.13s, border-color 0.13s, color 0.13s;
+}
+
+.area-filter-chip:hover {
+  background: #eceaf6;
+  border-color: #c9c3dd;
+  color: var(--text);
+}
+
+.area-filter-chip--active {
+  background: var(--accent-light);
+  border-color: #c0b4e6;
+  color: #4a3a6e;
+  font-weight: 700;
+}
+
+.room-chip-pending {
+  background: #fff3e0;
+  color: #8a5500;
+}
+
+.progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.progress-bar {
+  flex: 1;
+  max-width: 260px;
+  height: 7px;
+  background: var(--progress-bg);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 0.45s ease;
+}
+.progress-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ── Group card ─────────────────────────────────────────────── */
+.group {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.group-title {
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  padding: 11px 20px 9px;
+  background: #faf9f7;
+  border-bottom: 1px solid var(--border);
+}
+
+.item-list { list-style: none; }
+.item { border-bottom: 1px solid #f1eff5; }
+.item:last-child { border-bottom: none; }
+
+.item-meta {
+  padding: 0 20px 11px 54px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meta-label {
+  font-size: 0.67rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  margin-right: 2px;
+}
+
+.room-chip {
+  font-size: 0.65rem;
+  font-weight: 500;
+  background: #eceaf6;
+  color: #4e4272;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.item label {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 13px 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s;
+}
+.item label:hover { background: #faf9f7; }
+
+/* Hide native checkbox visually but keep it accessible */
+.item input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Custom checkmark box */
+.checkmark {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  margin-top: 2px;
+  border: 2px solid #d2cede;
+  border-radius: 6px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s, border-color 0.18s;
+  flex-shrink: 0;
+}
+.item.checked .checkmark {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.checkmark svg {
+  display: none;
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.item.checked .checkmark svg { display: block; }
+
+.item-text {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text);
+  letter-spacing: -0.005em;
+  transition: color 0.18s;
+}
+.item.checked .item-text {
+  text-decoration: line-through;
+  color: var(--text-done);
+}
+
+/* ── Mobile overlay ─────────────────────────────────────────── */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 199;
+  backdrop-filter: blur(2px);
+}
+.overlay.show { display: block; }
+
+/* ── Mobile breakpoint ──────────────────────────────────────── */
+@media (max-width: 720px) {
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    transform: translateX(-100%);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-close { display: flex; align-items: center; justify-content: center; }
+  .menu-btn { display: flex; align-items: center; justify-content: center; }
+  .content { padding: 20px 16px; }
+  .section-title h2 { font-size: 1.35rem; }
+  .progress-bar { max-width: 160px; }
+}

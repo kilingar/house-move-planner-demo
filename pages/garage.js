@@ -1,0 +1,20 @@
+export default {
+  id: "garage",
+  name: "Garage",
+  icon: "🚗",
+  items: [
+    { id: "garage-plan-check-walls", type: "plan", text: "Walls and ceiling are finished (primer, paint, and touch-ups complete)", tasks: ["provisional-acceptance"] },
+    { id: "garage-plan-check-floor", type: "plan", text: "Floor finish is complete and protected during remaining works", tasks: ["provisional-acceptance"] },
+    { id: "garage-plan-check-sockets", type: "plan", text: "Sockets, switches, and lights are tested and working", tasks: ["provisional-acceptance"] },
+    { id: "garage-plan-check-doors", type: "plan", text: "Doors and windows open, close, and seal correctly", tasks: ["provisional-acceptance"] },
+    { id: "garage-plan-check-skirting", type: "plan", text: "Skirting, caulk, and paint edges are clean and complete", tasks: ["provisional-acceptance"] },
+    { id: "garage-plan-door", type: "plan", text: "Confirm garage door clearance, manual override, and motor access", tasks: ["provisional-acceptance"] },
+    { id: "garage-plan-ev", type: "plan", text: "Confirm electrical supply capacity for future EV charger if needed", tasks: ["provisional-acceptance"] },
+    { id: "garage-plan-tap", type: "plan", text: "Check garage tap position, drainage, and hose access", tasks: ["provisional-acceptance"] },
+    { id: "garage-buy-hooks", type: "buy", text: "Storage hooks or wall organization system for garage" },
+    { id: "garage-buy-shelf", type: "buy", text: "Utility shelf or cabinet for garage storage" },
+    { id: "garage-do-door-test", type: "do", text: "Test garage door operation and safety sensor" },
+    { id: "garage-do-tap-test", type: "do", text: "Test garage tap and confirm drainage" },
+    { id: "garage-do-storage", type: "do", text: "Organize garage storage layout" },
+  ],
+};

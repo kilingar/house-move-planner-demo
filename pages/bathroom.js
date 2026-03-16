@@ -1,0 +1,23 @@
+export default {
+  id: "bathroom",
+  name: "Bathroom",
+  icon: "🚿",
+  items: [
+    { id: "bathroom-plan-check-walls", type: "plan", text: "Walls and ceiling are finished (primer, paint, and touch-ups complete)", tasks: ["provisional-acceptance"] },
+    { id: "bathroom-plan-check-floor", type: "plan", text: "Floor finish is complete and protected during remaining works", tasks: ["provisional-acceptance"] },
+    { id: "bathroom-plan-check-sockets", type: "plan", text: "Sockets, switches, and lights are tested and working", tasks: ["provisional-acceptance"] },
+    { id: "bathroom-plan-check-doors", type: "plan", text: "Doors and windows open, close, and seal correctly", tasks: ["provisional-acceptance"] },
+    { id: "bathroom-plan-check-skirting", type: "plan", text: "Skirting, caulk, and paint edges are clean and complete", tasks: ["provisional-acceptance"] },
+    { id: "bathroom-plan-layout", type: "plan", text: "Confirm final furniture layout and clearances", tasks: ["furniture-making"] },
+    { id: "bathroom-plan-waterproof", type: "plan", text: "Check waterproofing, ventilation, and fixture positions before final install", tasks: ["provisional-acceptance"] },
+    { id: "bathroom-buy-curtains", type: "buy", text: "Alternate day-night curtains" },
+    { id: "bathroom-buy-column", type: "buy", text: "Bathroom furniture - one vertical column floating - black", tasks: ["furniture-making"] },
+    { id: "bathroom-buy-silicone", type: "buy", text: "Silicone sealant for wet areas" },
+    { id: "bathroom-buy-carpet", type: "buy", text: "Carpet or rug for bathroom floor" },
+    { id: "bathroom-do-column-height", type: "do", text: "Confirm final fixing heights for the floating storage column before drilling", tasks: ["furniture-making"] },
+    { id: "bathroom-do-install-column", type: "do", text: "Install the floating storage column with fixings suitable for the wall type", tasks: ["furniture-making"] },
+    { id: "bathroom-do-curtain", type: "do", text: "Fit the curtain or blind solution and check privacy coverage" },
+    { id: "bathroom-do-silicone", type: "do", text: "Seal any exposed fixing points or edges near wet areas with sanitary silicone" },
+    { id: "bathroom-do-verify-circulation", type: "do", text: "Verify doors, drawers, and circulation space work comfortably after installation" },
+  ],
+};

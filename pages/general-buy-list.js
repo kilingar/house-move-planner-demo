@@ -1,0 +1,20 @@
+export default {
+  id: "general-buy-list",
+  name: "General Buy List",
+  icon: "🛒",
+  items: [
+    { id: "gbl-buy-socket-tester", type: "buy", text: "Socket tester" },
+    { id: "gbl-buy-elec-tester", type: "buy", text: "Basic electrical tester" },
+    { id: "gbl-buy-shutoff-valves", type: "buy", text: "Shut-off valves if replacements are needed" },
+    { id: "gbl-buy-drill-bits", type: "buy", text: "Drill bits" },
+    { id: "gbl-buy-ppe", type: "buy", text: "PPE (gloves, eye protection, mask)" },
+    { id: "gbl-buy-wood-panels", type: "buy", text: "Wood panels or plywood as per cutting plan", tasks: ["furniture-making"] },
+    { id: "gbl-buy-screws-brackets", type: "buy", text: "Screws, brackets, and connectors", tasks: ["furniture-making"] },
+    { id: "gbl-buy-clamps", type: "buy", text: "Clamps", tasks: ["furniture-making"] },
+    { id: "gbl-buy-wood-glue", type: "buy", text: "Wood glue", tasks: ["furniture-making"] },
+    { id: "gbl-buy-sandpaper-filler", type: "buy", text: "Sandpaper and wood filler", tasks: ["furniture-making"] },
+    { id: "gbl-buy-dust-mix", type: "buy", text: "Oak dust and spruce dust for dust-glue filler mix", tasks: ["furniture-making"] },
+    { id: "gbl-buy-primer-varnish", type: "buy", text: "Primer, paint, or varnish for finishing", tasks: ["furniture-making", "painting"] },
+    { id: "gbl-buy-handles", type: "buy", text: "Handles and hardware where required", tasks: ["furniture-making"] },
+  ],
+};
