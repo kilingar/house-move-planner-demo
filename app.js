@@ -117,13 +117,14 @@ function normalizeChecklistState(rawState) {
   const parsed = rawState && typeof rawState === "object" ? rawState : {};
 
   if (parsed.version !== CHECKLIST_VERSION || !parsed.room || typeof parsed.room !== "object") {
-    return { version: CHECKLIST_VERSION, room: {}, legacy: {}, updatedAt: 0 };
+    return { version: CHECKLIST_VERSION, room: {}, legacy: {}, notes: {}, updatedAt: 0 };
   }
 
   return {
     version: CHECKLIST_VERSION,
     room: parsed.room,
     legacy: parsed.legacy && typeof parsed.legacy === "object" ? parsed.legacy : {},
+    notes: parsed.notes && typeof parsed.notes === "object" ? parsed.notes : {},
     updatedAt: Number.isFinite(parsed.updatedAt) ? parsed.updatedAt : 0,
   };
 }
@@ -240,7 +241,8 @@ function scheduleRemoteSync() {
 function isChecklistStateEmpty(state) {
   const room = state && state.room && typeof state.room === "object" ? state.room : {};
   const legacy = state && state.legacy && typeof state.legacy === "object" ? state.legacy : {};
-  return Object.keys(room).length === 0 && Object.keys(legacy).length === 0;
+  const notes = state && state.notes && typeof state.notes === "object" ? state.notes : {};
+  return Object.keys(room).length === 0 && Object.keys(legacy).length === 0 && Object.keys(notes).length === 0;
 }
 
 async function hydrateChecklistStateFromRemote() {
@@ -297,6 +299,28 @@ function roomLabelById(roomId) {
 function isItemCompleteForRoom(key, roomId) {
   const roomState = checklistState.room && checklistState.room[roomId];
   return Boolean(roomState && roomState[key]);
+}
+
+function getItemNote(key) {
+  if (!checklistState.notes || typeof checklistState.notes !== "object") return "";
+  const note = checklistState.notes[key];
+  return typeof note === "string" ? note : "";
+}
+
+function setItemNote(key, noteText) {
+  if (!checklistState.notes || typeof checklistState.notes !== "object") {
+    checklistState.notes = {};
+  }
+
+  const note = String(noteText || "");
+  if (note.trim()) {
+    checklistState.notes[key] = note;
+  } else {
+    delete checklistState.notes[key];
+  }
+
+  markChecklistUpdated();
+  saveChecklistState();
 }
 
 function setItemCompleteForRoom(key, roomId, complete) {
@@ -633,6 +657,8 @@ function renderItemRow(item) {
   const completion = getItemCompletion(item);
   const checked = completion.allDone;
   const itemId = "item-" + toDomToken(item.key + "--" + (item.scopeRoomIds || []).join("-"));
+  const noteId = itemId + "-note";
+  const noteText = getItemNote(item.key);
   const chips = (item.linkedRoomNames || []).map(function(name) {
     return '<span class="room-chip">' + esc(name) + '</span>';
   }).join("");
@@ -645,6 +671,11 @@ function renderItemRow(item) {
   const pendingHtml = pendingChips
     ? '<div class="item-meta"><span class="meta-label">Pending:</span>' + pendingChips + '</div>'
     : "";
+  const noteHtml =
+    '<div class="item-note-wrap">' +
+      '<label class="item-note-label" for="' + esc(noteId) + '">Notes</label>' +
+      '<textarea class="item-note-input" id="' + esc(noteId) + '" data-note-key="' + esc(item.key) + '" rows="2" placeholder="Add note...">' + esc(noteText) + '</textarea>' +
+    '</div>';
 
   return (
     '<li class="item' + (checked ? ' checked' : '') + (completion.partial ? ' partial' : '') + '">' +
@@ -655,7 +686,7 @@ function renderItemRow(item) {
         '</span>' +
         '<span class="item-text">' + esc(item.text) + '</span>' +
       '</label>' +
-      linkedHtml + pendingHtml +
+      linkedHtml + pendingHtml + noteHtml +
     '</li>'
   );
 }
@@ -856,6 +887,11 @@ document.getElementById("content").addEventListener("click", function(event) {
 document.getElementById("content").addEventListener("change", function(event) {
   const target = event.target;
 
+  if (target instanceof HTMLTextAreaElement && target.classList.contains("item-note-input")) {
+    setItemNote(target.dataset.noteKey, target.value);
+    return;
+  }
+
   if (!(target instanceof HTMLInputElement) || !target.classList.contains("item-toggle")) {
     return;
   }
@@ -883,6 +919,26 @@ document.getElementById("content").addEventListener("change", function(event) {
 
   renderNav();
   renderContent();
+});
+
+document.getElementById("content").addEventListener("input", function(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLTextAreaElement) || !target.classList.contains("item-note-input")) {
+    return;
+  }
+
+  const key = "noteTimer";
+  const existing = target.dataset[key];
+  if (existing) {
+    window.clearTimeout(Number(existing));
+  }
+
+  const timeoutId = window.setTimeout(function() {
+    setItemNote(target.dataset.noteKey, target.value);
+    delete target.dataset[key];
+  }, 450);
+
+  target.dataset[key] = String(timeoutId);
 });
 
 document.addEventListener("keydown", function(event) {

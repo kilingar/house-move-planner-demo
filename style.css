@@ -445,6 +445,39 @@ nav { padding: 10px 0 24px; }
   color: var(--text-done);
 }
 
+.item-note-wrap {
+  padding: 0 20px 12px 54px;
+}
+
+.item-note-label {
+  display: block;
+  font-size: 0.67rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.item-note-input {
+  width: 100%;
+  min-height: 54px;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  padding: 7px 9px;
+}
+
+.item-note-input:focus {
+  outline: none;
+  border-color: #c0b4e6;
+  box-shadow: 0 0 0 2px rgba(108, 71, 196, 0.1);
+}
+
 /* ── Mobile overlay ─────────────────────────────────────────── */
 .overlay {
   display: none;
