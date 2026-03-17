@@ -1,143 +1,138 @@
-# House Move Planner
+# House Move Planner Demo
 
-A simple checklist app for planning a home move/new-house setup.
+A simple checklist app for planning a home move or new-house setup.
 
-This repo is built so you can:
-- Copy it
-- Customize rooms/tasks quickly
-- Deploy to Vercel
-- Sync checklist ticks across devices using Upstash Redis
+This demo repo is designed to be easy to copy, edit, and deploy.
 
-## Who This Is For
+## What You Can Do
 
-If you are moving into a new home and want a ready-to-edit checklist app, this is for you.
-You can use ChatGPT/Copilot to quickly rewrite room lists, tasks, and labels.
+- Customize rooms and checklist items quickly
+- Deploy to Vercel in minutes
+- Sync checked items across devices with Upstash Redis
 
-## Important Before Sharing
+## Privacy And Sharing
 
-This project folder may contain private document folders.
-If you share with friends, share only the app code files:
-- `index.html`
-- `style.css`
-- `app.js`
-- `data.js`
-- `pages/`
-- `api/`
-- `package.json`
+This demo repo is safe to share publicly.
+If you build your own version, keep personal documents outside the repository.
 
-Do not include personal document folders.
+## Copy This Project
 
-## 1. Copy The Project
+Option A (quick): Fork on GitHub.
 
-Option A: Fork this repo on GitHub.
+Option B (clean copy into your own repo):
 
-Option B: Create a new repo and push:
+1. Clone this repository.
+2. Point git to your own new repository.
+3. Push as main.
 
-```bash
-git clone <source-repo-url>
-cd <repo-folder>
+Commands:
+
+git clone https://github.com/kilingar/house-move-planner-demo.git
+cd house-move-planner-demo
 git remote remove origin
-git remote add origin <your-new-repo-url>
+git remote add origin https://github.com/<your-user>/<your-repo>.git
 git push -u origin main
-```
 
-## 2. Customize Rooms And Tasks
+## Make Your Copy Private
 
-Most content lives in `pages/*.js`.
-Each page exports a section with `items`.
+If you copied this project and want your own private version:
 
-Item format:
+1. Open your copied repository on GitHub.
+2. Go to Settings > General.
+3. In Danger Zone, choose Change repository visibility.
+4. Select Private.
 
-```js
+If your copy was made as a fork and your plan does not allow private forks, create a new private repository and push your code there using Option B above.
+
+## Edit Rooms And Tasks
+
+Most content lives in pages/*.js.
+The page order/menu is controlled in data.js.
+
+Each item looks like this:
+
 { id: "kitchen-plan-check-sockets", type: "plan", text: "Sockets, switches, and lights are tested and working" }
-```
 
-Fields:
-- `id`: must be unique and stable (do not change after users start ticking items)
-- `type`: `plan`, `buy`, or `do`
-- `text`: the visible checklist line
-- `tasks` (optional): cross-tag item under task filters
-- `group` (optional): used for grouped planning pages
+Field rules:
 
-To add/remove a room, update imports and section order in `data.js`.
+- id: unique and stable (do not rename existing ids after real usage starts)
+- type: one of plan, buy, do
+- text: checklist label shown in UI
+- tasks: optional cross-tag
+- group: optional grouping label
 
-### Tip For ChatGPT
-
-Use prompts like:
-
-"Update my `pages/kitchen.js` list for a family of 4, keep IDs stable where possible, add new IDs only for new items, keep type as plan/buy/do."
-
-## 3. Deploy To Vercel
+## Deploy To Vercel
 
 1. Push your code to GitHub.
-2. In Vercel, click New Project and import your repo.
+2. In Vercel, create a new project from your repo.
 3. Deploy.
 
-Your app is static + serverless API (`/api/checklist`).
-No local deploy tooling is required.
+## Redis Setup (Cross-Device Sync)
 
-## 4. Enable Cross-Device Tick Sync (Upstash Redis)
+The API route api/checklist.js saves and loads checklist state from Upstash Redis.
 
-This project uses `@upstash/redis` in `api/checklist.js`.
+Without Redis:
 
-In Vercel:
-1. Open your project.
+- The API returns 503 with a clear message.
+- Checkmarks only live in each browser local storage.
+- Laptop and phone will not stay in sync.
+
+With Redis configured:
+
+- GET /api/checklist returns shared state.
+- POST /api/checklist updates shared state.
+- All devices for the same deployment see the same ticks.
+
+### Configure Redis In Vercel
+
+1. Open your Vercel project.
 2. Go to Storage.
-3. Add an Upstash Redis integration.
-4. Connect it to this project.
-5. Redeploy.
+3. Add Upstash Redis and connect it.
+4. Redeploy.
 
-The API accepts either env var pair:
-- Preferred: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
-- Compatible fallback: `KV_REST_API_URL`, `KV_REST_API_TOKEN`
+Accepted environment variable pairs:
 
-Optional key override:
-- `CHECKLIST_STORAGE_KEY` (default: `house-project-checklist-v1`)
+- UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
+- KV_REST_API_URL and KV_REST_API_TOKEN (compatible fallback)
 
-## 5. Verify It Works
+Optional key name override:
 
-After deploy:
-1. Open `/api/checklist` on your domain.
-2. You should get JSON (not 500).
-3. Tick an item on laptop.
-4. Open same app on phone and refresh.
-5. Tick state should match.
+- CHECKLIST_STORAGE_KEY (default: house-project-checklist-v1)
+
+## Verify Everything Works
+
+1. Open https://<your-domain>/api/checklist
+2. Confirm it returns JSON and not an error.
+3. Check an item on device A.
+4. Open on device B and refresh.
+5. Confirm checked state matches.
 
 ## Troubleshooting
 
-### 500 from `/api/checklist`
-Usually Redis is not attached or env vars are missing.
-- Re-check Upstash integration in Vercel
-- Confirm env vars exist in the deployed environment
-- Redeploy after changes
+### Empty page or module/CORS error
 
-### Ticks disappear after edits
-Tick state is keyed by item `id`.
-If you rename `id`s, existing checked states no longer match.
-Keep IDs stable.
+Do not open index.html with file://
+Use a local server or Vercel URL instead.
 
-### Ticks differ by device
-If Redis sync is not configured, each browser/device uses local storage only.
-Configure Upstash and redeploy.
+For local run:
 
-## Local Run (Optional)
-
-You can still open with a simple server:
-
-```bash
 python -m http.server 5500
-```
 
-Then open `http://localhost:5500`.
+Then open:
 
-Note: cross-device sync depends on deployed API and Redis.
+http://localhost:5500
 
-## Suggested Workflow For Friends
+### API returns 503
 
-1. Copy repo
-2. Customize `pages/*.js`
-3. Keep IDs stable
-4. Deploy to Vercel
-5. Add Upstash Redis
-6. Redeploy
-7. Start checking tasks on phone + laptop
+Redis is not configured for this deployment.
+Attach Upstash Redis and redeploy.
+
+### API returns 500
+
+Usually a bad Redis credential value or integration issue.
+Check environment values and redeploy.
+
+### Checked states disappear after edits
+
+You changed item ids.
+State is keyed by id, so keep ids stable over time.
