@@ -170,7 +170,16 @@ async function fetchRemoteChecklistState() {
       },
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      let detail = "";
+      try {
+        detail = await response.text();
+      } catch (error) {
+        detail = "";
+      }
+      console.warn("Remote checklist GET failed:", response.status, detail || response.statusText);
+      return null;
+    }
 
     const payload = await response.json();
     return normalizeChecklistState(payload && payload.state);
@@ -188,15 +197,26 @@ async function pushRemoteChecklistState() {
   remoteSyncInFlight = true;
 
   try {
-    await window.fetch(REMOTE_SYNC_ENDPOINT, {
+    const response = await window.fetch(REMOTE_SYNC_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ state: checklistState }),
     });
+
+    if (!response.ok) {
+      let detail = "";
+      try {
+        detail = await response.text();
+      } catch (error) {
+        detail = "";
+      }
+      console.warn("Remote checklist POST failed:", response.status, detail || response.statusText);
+    }
   } catch (error) {
     // Keep local state if remote sync fails.
+    console.warn("Remote checklist POST request failed:", error && error.message ? error.message : error);
   } finally {
     remoteSyncInFlight = false;
     if (remoteSyncPending) {

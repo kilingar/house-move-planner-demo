@@ -29,9 +29,25 @@ function parseJsonBody(req) {
   }
 }
 
+function sanitizeEnvValue(value) {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+
+  return trimmed;
+}
+
 function getRedisCredentials() {
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  const rawUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const rawToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  const url = sanitizeEnvValue(rawUrl);
+  const token = sanitizeEnvValue(rawToken);
 
   if (!url || !token) return null;
   return { url, token };
