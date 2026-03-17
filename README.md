@@ -4,6 +4,27 @@ A simple checklist app for planning a home move or new-house setup.
 
 This demo repo is designed to be easy to copy, edit, and deploy.
 
+## Quick Start (5 Minutes)
+
+1. Fork this repo to your GitHub account.
+2. Open it in GitHub Codespaces.
+3. Edit files in pages/ and data.js.
+4. Commit and push from Codespaces.
+5. Import your repo in Vercel and deploy.
+
+## Recommended For Friends: GitHub Codespaces
+
+If your friend is not technical, use GitHub Codespaces.
+It avoids local setup and works fully in the browser.
+
+How your friend can start:
+
+1. Open your shared repository on GitHub.
+2. Click Code > Codespaces > Create codespace on main.
+3. Edit checklist files directly.
+4. Commit and push changes.
+5. Redeploy in Vercel.
+
 ## What You Can Do
 
 - Customize rooms and checklist items quickly
