@@ -1,4 +1,4 @@
-const { kv } = require("@vercel/kv");
+const { Redis } = require("@upstash/redis");
 
 const STORAGE_KEY = process.env.CHECKLIST_STORAGE_KEY || "house-project-checklist-v1";
 const CHECKLIST_VERSION = 3;
@@ -29,17 +29,43 @@ function parseJsonBody(req) {
   }
 }
 
+function getRedisCredentials() {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+  if (!url || !token) return null;
+  return { url, token };
+}
+
+function getRedisClient() {
+  const creds = getRedisCredentials();
+  if (!creds) return null;
+
+  return new Redis({
+    url: creds.url,
+    token: creds.token,
+  });
+}
+
 module.exports = async function handler(req, res) {
   try {
+    const redis = getRedisClient();
+    if (!redis) {
+      return res.status(503).json({
+        error: "Redis is not configured for this deployment",
+        detail: "Attach an Upstash Redis integration and set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or KV_REST_API_URL and KV_REST_API_TOKEN).",
+      });
+    }
+
     if (req.method === "GET") {
-      const state = await kv.get(STORAGE_KEY);
+      const state = await redis.get(STORAGE_KEY);
       return res.status(200).json({ state: state || null });
     }
 
     if (req.method === "POST") {
       const payload = parseJsonBody(req);
       const state = normalizeChecklistState(payload && payload.state);
-      await kv.set(STORAGE_KEY, state);
+      await redis.set(STORAGE_KEY, state);
       return res.status(200).json({ ok: true, state });
     }
 
@@ -47,7 +73,7 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   } catch (error) {
     return res.status(500).json({
-      error: "KV operation failed",
+      error: "Redis operation failed",
       detail: error && error.message ? error.message : "unknown error",
     });
   }
