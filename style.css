@@ -302,11 +302,6 @@ nav { padding: 10px 0 24px; }
   font-weight: 700;
 }
 
-.room-chip-pending {
-  background: #fff3e0;
-  color: #8a5500;
-}
-
 .progress-wrap {
   display: flex;
   align-items: center;
@@ -449,18 +444,9 @@ nav { padding: 10px 0 24px; }
   padding: 0 20px 12px 54px;
 }
 
-.item-note-label {
-  display: block;
-  font-size: 0.67rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: var(--text-muted);
-  margin-bottom: 5px;
-}
-
 .item-note-input {
   width: 100%;
-  min-height: 54px;
+  min-height: 40px;
   resize: vertical;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -469,7 +455,7 @@ nav { padding: 10px 0 24px; }
   font-family: inherit;
   font-size: 0.8rem;
   line-height: 1.4;
-  padding: 7px 9px;
+  padding: 6px 8px;
 }
 
 .item-note-input:focus {

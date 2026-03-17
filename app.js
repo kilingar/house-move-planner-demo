@@ -4,145 +4,33 @@
 // ============================================================
 
 import { SECTIONS } from "./data.js";
+import {
+  HOUSE_MAP_SECTION,
+  TASK_DEFS,
+  TASK_SECTIONS,
+  PLANNING_SECTION_IDS,
+  TYPE_ORDER,
+  TYPE_LABEL,
+  BUY_GROUP_ORDER,
+  PROVISIONAL_ACCEPTANCE_SECTION_ID,
+  PROVISIONAL_ACCEPTANCE_TASK_ID,
+  GROUPED_FLAT_SECTION_IDS,
+  CHECKLIST_STORAGE_KEY,
+  CHECKLIST_VERSION,
+  REMOTE_SYNC_ENDPOINT,
+  buildViewSections,
+} from "./app-config.js";
+import { esc, normalizeText, toDomToken } from "./app-utils.js";
+import { normalizeChecklistState, loadChecklistState, isChecklistStateEmpty } from "./checklist-state.js";
 
-const HOUSE_MAP_SECTION = {
-  id: "house-map",
-  name: "House Map",
-  icon: "🧭",
-  groups: [],
-};
+const {
+  timelineSection,
+  planningSections,
+  areaSections,
+  VIEW_SECTIONS,
+} = buildViewSections(SECTIONS);
 
-const TASK_DEFS = [
-  {
-    id: "painting",
-    name: "Painting",
-    icon: "🎨",
-  },
-  {
-    id: "ikea-pax",
-    name: "PAX",
-    icon: "🧰",
-  },
-  {
-    id: "furniture-making",
-    name: "Furniture",
-    icon: "🪚",
-  },
-  {
-    id: "cloison",
-    name: "Cloison",
-    icon: "🧱",
-  },
-  {
-    id: "flooring",
-    name: "Flooring",
-    icon: "🪵",
-  },
-  {
-    id: "wall-panels",
-    name: "Wall Panels",
-    icon: "🪟",
-  },
-];
-
-const TASK_SECTIONS = TASK_DEFS.map(function(task) {
-  return {
-    id: "task-" + task.id,
-    name: task.name,
-    icon: task.icon,
-    kind: "task",
-    taskId: task.id,
-    groups: [],
-  };
-});
-
-const PLANNING_SECTION_IDS = new Set([
-  "timeline",
-  "general-buy-list",
-  "pre-sale-visit",
-  "provisional-acceptance",
-  "admin",
-]);
-
-const HIDDEN_FROM_AREA_NAV_IDS = new Set(["painting"]);
-
-const timelineSection = SECTIONS.find(function(section) {
-  return section.id === "timeline";
-});
-const planningSections = [HOUSE_MAP_SECTION].concat(SECTIONS.filter(function(section) {
-  return PLANNING_SECTION_IDS.has(section.id);
-}));
-const areaSections = SECTIONS.filter(function(section) {
-  return !PLANNING_SECTION_IDS.has(section.id) && !HIDDEN_FROM_AREA_NAV_IDS.has(section.id);
-});
-const VIEW_SECTIONS = planningSections.concat(areaSections, TASK_SECTIONS);
-const TYPE_ORDER = ["plan", "buy", "do"];
-const TYPE_LABEL = {
-  plan: "Plan",
-  buy: "To Buy",
-  do: "To Do",
-};
-const PROVISIONAL_ACCEPTANCE_SECTION_ID = "provisional-acceptance";
-const PROVISIONAL_ACCEPTANCE_TASK_ID = "provisional-acceptance";
-const GROUPED_FLAT_SECTION_IDS = new Set(["timeline", "pre-sale-visit", "provisional-acceptance"]);
-const PLAN_SECTION_IDS = new Set(["admin", "pre-sale-visit", "provisional-acceptance"]);
-const BUY_SECTION_IDS = new Set(["general-buy-list"]);
-const CHECKLIST_STORAGE_KEY = "house-project-checklist-v1";
-const CHECKLIST_VERSION = 3;
-const REMOTE_SYNC_ENDPOINT = "/api/checklist";
-
-function esc(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function normalizeText(str) {
-  return String(str)
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, " ");
-}
-
-function toDomToken(str) {
-  return String(str)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-function normalizeChecklistState(rawState) {
-  const parsed = rawState && typeof rawState === "object" ? rawState : {};
-
-  if (parsed.version !== CHECKLIST_VERSION || !parsed.room || typeof parsed.room !== "object") {
-    return { version: CHECKLIST_VERSION, room: {}, legacy: {}, notes: {}, updatedAt: 0 };
-  }
-
-  return {
-    version: CHECKLIST_VERSION,
-    room: parsed.room,
-    legacy: parsed.legacy && typeof parsed.legacy === "object" ? parsed.legacy : {},
-    notes: parsed.notes && typeof parsed.notes === "object" ? parsed.notes : {},
-    updatedAt: Number.isFinite(parsed.updatedAt) ? parsed.updatedAt : 0,
-  };
-}
-
-function loadChecklistState() {
-  try {
-    const raw = window.localStorage.getItem(CHECKLIST_STORAGE_KEY);
-    if (!raw) {
-      return normalizeChecklistState(null);
-    }
-
-    return normalizeChecklistState(JSON.parse(raw));
-  } catch (error) {
-    return normalizeChecklistState(null);
-  }
-}
-
-let checklistState = loadChecklistState();
+let checklistState = loadChecklistState(CHECKLIST_STORAGE_KEY, CHECKLIST_VERSION);
 let remoteSyncTimerId = null;
 let remoteSyncInFlight = false;
 let remoteSyncPending = false;
@@ -183,7 +71,7 @@ async function fetchRemoteChecklistState() {
     }
 
     const payload = await response.json();
-    return normalizeChecklistState(payload && payload.state);
+    return normalizeChecklistState(payload && payload.state, CHECKLIST_VERSION);
   } catch (error) {
     return null;
   }
@@ -236,13 +124,6 @@ function scheduleRemoteSync() {
     remoteSyncTimerId = null;
     pushRemoteChecklistState();
   }, 400);
-}
-
-function isChecklistStateEmpty(state) {
-  const room = state && state.room && typeof state.room === "object" ? state.room : {};
-  const legacy = state && state.legacy && typeof state.legacy === "object" ? state.legacy : {};
-  const notes = state && state.notes && typeof state.notes === "object" ? state.notes : {};
-  return Object.keys(room).length === 0 && Object.keys(legacy).length === 0 && Object.keys(notes).length === 0;
 }
 
 async function hydrateChecklistStateFromRemote() {
@@ -443,6 +324,10 @@ function buildRenderableItem(key, text, linkedRoomNames, options) {
     linkedRoomNames: linkedRoomNames || [],
     scopeRoomIds: opts.scopeRoomIds || [],
     scopeRoomNames: opts.scopeRoomNames || [],
+    type: opts.type || null,
+    group: opts.group || null,
+    tasks: opts.tasks || [],
+    rooms: opts.rooms || [],
   };
 }
 
@@ -458,6 +343,10 @@ function getNativeGroups(section) {
           {
             scopeRoomIds: [section.id],
             scopeRoomNames: [section.name],
+            type: null,
+            group: group.title || null,
+            tasks: [],
+            rooms: [section.id],
           }
         );
       }),
@@ -482,6 +371,10 @@ function getTypedGroups(section) {
         return buildRenderableItem(item.key, item.text, getLinkedRoomNames(item, section.id), {
           scopeRoomIds: [section.id],
           scopeRoomNames: [section.name],
+          type: item.type,
+          group: item.group,
+          tasks: item.tasks,
+          rooms: item.rooms,
         });
       }),
     };
@@ -495,6 +388,12 @@ function getGroupedFlatSectionGroups(section) {
   const groupedItems = ITEM_GRAPH.filter(function(item) {
     const isCrossListedProvisionalItem =
       section.id === PROVISIONAL_ACCEPTANCE_SECTION_ID && item.tasks.includes(PROVISIONAL_ACCEPTANCE_TASK_ID);
+    const isNativeProvisionalItem =
+      section.id === PROVISIONAL_ACCEPTANCE_SECTION_ID && item.rooms.includes(PROVISIONAL_ACCEPTANCE_SECTION_ID);
+
+    if (isNativeProvisionalItem && item.group !== "General Checklist (Final)") {
+      return false;
+    }
 
     if (!item.rooms.includes(section.id) && !isCrossListedProvisionalItem) return false;
     if (activeTask && !item.tasks.includes(activeTask.id)) return false;
@@ -510,6 +409,8 @@ function getGroupedFlatSectionGroups(section) {
           return roomId !== PROVISIONAL_ACCEPTANCE_SECTION_ID;
         })
       : null;
+    const scopedRoomId = sourceRoomId || section.id;
+    const scopedRoomName = roomLabelById(scopedRoomId);
     const title = item.group || (sourceRoomId ? roomLabelById(sourceRoomId) : null) || TYPE_LABEL[item.type] || "Items";
     if (!buckets.has(title)) {
       buckets.set(title, []);
@@ -517,8 +418,12 @@ function getGroupedFlatSectionGroups(section) {
     }
 
     buckets.get(title).push(buildRenderableItem(item.key, item.text, getLinkedRoomNames(item, section.id), {
-      scopeRoomIds: [section.id],
-      scopeRoomNames: [section.name],
+      scopeRoomIds: [scopedRoomId],
+      scopeRoomNames: [scopedRoomName],
+      type: item.type,
+      group: item.group || title,
+      tasks: item.tasks,
+      rooms: item.rooms,
     }));
   });
 
@@ -558,6 +463,10 @@ function getSectionGroups(section) {
           return buildRenderableItem(item.key, item.text, linkedNames, {
             scopeRoomIds: finalScope,
             scopeRoomNames: finalScope.map(roomLabelById),
+            type: item.type,
+            group: item.group,
+            tasks: item.tasks,
+            rooms: item.rooms,
           });
         }),
       };
@@ -574,6 +483,10 @@ function getSectionGroups(section) {
           return buildRenderableItem(item.key, item.text, getLinkedRoomNames(item, section.id), {
             scopeRoomIds: item.rooms,
             scopeRoomNames: item.roomNames,
+            type: item.type,
+            group: item.group,
+            tasks: item.tasks,
+            rooms: item.rooms,
           });
         }),
       };
@@ -583,19 +496,42 @@ function getSectionGroups(section) {
   }
 
   if (section.id === "general-buy-list") {
-    return [
-      {
-        title: "To Buy",
-        items: ITEM_GRAPH.filter(function(item) {
-          return item.type === "buy";
-        }).map(function(item) {
-          return buildRenderableItem(item.key, item.text, getLinkedRoomNames(item, section.id), {
-            scopeRoomIds: item.rooms,
-            scopeRoomNames: item.roomNames,
-          });
-        }),
-      },
-    ];
+    const grouped = new Map();
+
+    ITEM_GRAPH.filter(function(item) {
+      return item.type === "buy";
+    }).forEach(function(item) {
+      const title = item.group || "General";
+      if (!grouped.has(title)) {
+        grouped.set(title, []);
+      }
+
+      grouped.get(title).push(buildRenderableItem(item.key, item.text, getLinkedRoomNames(item, section.id), {
+        scopeRoomIds: item.rooms,
+        scopeRoomNames: item.roomNames,
+        type: item.type,
+        group: item.group || title,
+        tasks: item.tasks,
+        rooms: item.rooms,
+      }));
+    });
+
+    const orderedTitles = BUY_GROUP_ORDER.filter(function(title) {
+      return grouped.has(title);
+    }).concat(Array.from(grouped.keys()).filter(function(title) {
+      return !BUY_GROUP_ORDER.includes(title);
+    }).sort(function(a, b) {
+      return a.localeCompare(b);
+    }));
+
+    return orderedTitles.map(function(title) {
+      return {
+        title: title,
+        items: grouped.get(title),
+      };
+    }).filter(function(group) {
+      return group.items.length > 0;
+    });
   }
 
   if (GROUPED_FLAT_SECTION_IDS.has(section.id)) {
@@ -662,19 +598,12 @@ function renderItemRow(item) {
   const chips = (item.linkedRoomNames || []).map(function(name) {
     return '<span class="room-chip">' + esc(name) + '</span>';
   }).join("");
-  const pendingChips = completion.pendingRoomIds.map(function(roomId) {
-    return '<span class="room-chip room-chip-pending">' + esc(roomLabelById(roomId)) + '</span>';
-  }).join("");
-  const linkedHtml = chips
+  const linkedHtml = shouldRenderLinkedRoomsForActiveSection() && chips
     ? '<div class="item-meta"><span class="meta-label">Linked rooms:</span>' + chips + '</div>'
-    : "";
-  const pendingHtml = pendingChips
-    ? '<div class="item-meta"><span class="meta-label">Pending:</span>' + pendingChips + '</div>'
     : "";
   const noteHtml =
     '<div class="item-note-wrap">' +
-      '<label class="item-note-label" for="' + esc(noteId) + '">Notes</label>' +
-      '<textarea class="item-note-input" id="' + esc(noteId) + '" data-note-key="' + esc(item.key) + '" rows="2" placeholder="Add note...">' + esc(noteText) + '</textarea>' +
+      '<textarea class="item-note-input" id="' + esc(noteId) + '" data-note-key="' + esc(item.key) + '" rows="1" placeholder="Add note..." aria-label="Notes for ' + esc(item.text) + '">' + esc(noteText) + '</textarea>' +
     '</div>';
 
   return (
@@ -686,7 +615,7 @@ function renderItemRow(item) {
         '</span>' +
         '<span class="item-text">' + esc(item.text) + '</span>' +
       '</label>' +
-      linkedHtml + pendingHtml + noteHtml +
+      linkedHtml + noteHtml +
     '</li>'
   );
 }
@@ -745,6 +674,10 @@ let activeId = timelineSection ? timelineSection.id : VIEW_SECTIONS[0].id;
 let taskScopeAreaId = null;
 let activeAreaTaskFilter = null;
 
+function shouldRenderLinkedRoomsForActiveSection() {
+  return !PLANNING_SECTION_IDS.has(activeId) && activeId !== HOUSE_MAP_SECTION.id;
+}
+
 function renderNav() {
   const nav = document.getElementById("nav");
 
@@ -785,7 +718,7 @@ function renderContent() {
 
   const groups = getSectionGroups(section);
   const stats = getGroupStats(groups);
-  let filterPanel = "";
+  const filterPanels = [];
   if (section.kind === "task") {
     const task = taskById(section.taskId);
     if (task) {
@@ -797,17 +730,18 @@ function renderContent() {
           const active = taskScopeAreaId === a.id ? ' area-filter-chip--active' : '';
           return '<button class="area-filter-chip' + active + '" data-area-filter-id="' + esc(a.id) + '">' + esc(a.name) + '</button>';
         }).join('');
-        filterPanel =
+        filterPanels.push(
           '<div class="task-panel">' +
             '<div class="task-panel-title">Filter by Area</div>' +
             '<div class="task-panel-row">' + allChip + areaChips + '</div>' +
-          '</div>';
+          '</div>'
+        );
       }
     }
   } else if (!section.kind && !PLANNING_SECTION_IDS.has(section.id) && section.id !== HOUSE_MAP_SECTION.id) {
     const tasks = availableTasksForArea(section);
     if (tasks.length) {
-      filterPanel =
+      filterPanels.push(
         '<div class="task-panel">' +
           '<div class="task-panel-title">Filter by Task</div>' +
           '<div class="task-panel-row">' +
@@ -816,7 +750,8 @@ function renderContent() {
               return '<button class="task-chip' + active + '" data-task-filter-id="' + esc(task.id) + '">' + esc(task.name) + '</button>';
             }).join('') +
           '</div>' +
-        '</div>';
+        '</div>'
+      );
     }
   }
 
@@ -828,12 +763,14 @@ function renderContent() {
         '<h2>' + esc(section.name) + '</h2>' +
       '</div>' +
       '<div class="summary-line">' + esc(buildSummary(section, groups, stats)) + '</div>' +
-      filterPanel +
+      filterPanels.join('') +
       renderProgress(stats.completed, stats.total) +
     '</div>' +
-    groups.map(function(group) {
-      return renderGroupBlock(group.title, group.items);
-    }).join('');
+    (groups.length
+      ? groups.map(function(group) {
+          return renderGroupBlock(group.title, group.items);
+        }).join('')
+      : '<div class="group"><div class="group-title">No items match current filters</div></div>');
 
   document.getElementById("content").querySelectorAll(".item-toggle").forEach(function(input) {
     if (!(input instanceof HTMLInputElement)) return;
@@ -876,7 +813,7 @@ document.getElementById("content").addEventListener("click", function(event) {
   }
 
   const taskChip = target.closest(".task-chip");
-  if (taskChip) {
+  if (taskChip && taskChip.dataset.taskFilterId) {
     const newFilter = taskChip.dataset.taskFilterId;
     activeAreaTaskFilter = activeAreaTaskFilter === newFilter ? null : newFilter;
     renderNav();

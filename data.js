@@ -11,11 +11,13 @@ import garage from "./pages/garage.js";
 import admin from "./pages/admin.js";
 import greenhouse from "./pages/greenhouse.js";
 import outsideHouse from "./pages/outside-house.js";
-import toilets from "./pages/toilets.js";
+import toiletGroundFloor from "./pages/toilet-ground-floor.js";
+import toiletFirstFloor from "./pages/toilet-first-floor.js";
 import stairs from "./pages/stairs.js";
 import groundCorridor from "./pages/ground-corridor.js";
 import upstairsCorridor from "./pages/upstairs-corridor.js";
 import grenier from "./pages/grenier.js";
+import bathroomMasterAttached from "./pages/bathroom-master-attached.js";
 import preSaleVisit from "./pages/pre-sale-visit.js";
 import provisionalAcceptance from "./pages/provisional-acceptance.js";
 import generalBuyList from "./pages/general-buy-list.js";
@@ -27,14 +29,16 @@ export const SECTIONS = [
   preSaleVisit,
   provisionalAcceptance,
   groundCorridor,
-  toilets,
+  toiletGroundFloor,
   garage,
   buanderie,
   livingRoom,
   kitchen,
   stairs,
   upstairsCorridor,
+  toiletFirstFloor,
   bathroom,
+  bathroomMasterAttached,
   kidRoom,
   secondBedroom,
   bedroomMaster,
