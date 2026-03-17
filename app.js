@@ -391,10 +391,6 @@ function getGroupedFlatSectionGroups(section) {
     const isNativeProvisionalItem =
       section.id === PROVISIONAL_ACCEPTANCE_SECTION_ID && item.rooms.includes(PROVISIONAL_ACCEPTANCE_SECTION_ID);
 
-    if (isNativeProvisionalItem && item.group !== "General Checklist (Final)") {
-      return false;
-    }
-
     if (!item.rooms.includes(section.id) && !isCrossListedProvisionalItem) return false;
     if (activeTask && !item.tasks.includes(activeTask.id)) return false;
     return true;
